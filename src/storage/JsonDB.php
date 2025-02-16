@@ -2,7 +2,6 @@
 class JsonDB {
     private static $path = __DIR__ . "/../repositores/";
 
-
     public static function read($filename) {
         $file = self::$path . $filename;
         return json_decode(file_get_contents($file), true) ?? [];

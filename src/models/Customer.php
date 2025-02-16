@@ -1,5 +1,5 @@
 <?php
-//sanırım model kullanmayacağım
+// Sanırım model kullanmayacağım
 class Customer {
     public int $id;
     public string $name;

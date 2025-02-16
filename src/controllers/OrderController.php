@@ -25,5 +25,6 @@ class OrderController {
         $response = OrderService::deleteOrder($orderId);
         echo json_encode($response);
     }
+    //hard delete ?
 }
 ?>

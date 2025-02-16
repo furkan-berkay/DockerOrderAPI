@@ -53,7 +53,7 @@ class DiscountService {
         foreach($order["items"] as $item) {
             $product = JsonDB::getJsonById($item["productId"], "products", "id");
 
-            // ürün category 1 ise
+            // Ürün category 1 ise
             if($product["category"] == 1) {
                 $category1Items[] = [
                     "productId" => $item["productId"],
