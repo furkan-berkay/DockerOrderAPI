@@ -1,0 +1,41 @@
+[
+    {
+        "orderId": 3,
+        "discounts": [
+            {
+                "discountReason": "BUY_5_GET_1",
+                "discountAmount": "11.28",
+                "subtotal": "1263.90"
+            },
+            {
+                "discountReason": "10_PERCENT_OVER_1000",
+                "discountAmount": "127.51",
+                "subtotal": "1136.39"
+            }
+        ],
+        "totalDiscount": "138.79",
+        "discountedTotal": "1136.39"
+    },
+    {
+        "orderId": 4,
+        "discounts": [
+            {
+                "discountReason": "10_PERCENT_OVER_1000",
+                "discountAmount": "175.20",
+                "subtotal": "1576.80"
+            },
+            {
+                "discountReason": "BUY_5_GET_1_CATEGORY_2",
+                "discountAmount": "11.28",
+                "subtotal": "1565.52"
+            },
+            {
+                "discountReason": "20_PERCENT_LOWEST_PRODUCT_CATEGORY_1",
+                "discountAmount": "9.90",
+                "subtotal": "1555.62"
+            }
+        ],
+        "totalDiscount": "196.38",
+        "discountedTotal": "1555.62"
+    }
+]
