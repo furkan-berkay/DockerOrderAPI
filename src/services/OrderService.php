@@ -69,57 +69,6 @@ class OrderService {
         return $orderData;
     }
 
-    public static function addOrderx($orderData) {
-        // Payload validasyonu
-        $validationErrors = self::validateOrderPayload($orderData);
-        if(!empty($validationErrors)) {
-            return ["error" => $validationErrors]; // Geçersiz verilerle işlem yapma
-        }
-
-        // Siparişteki her ürün için stok kontrolü ve total hesaplama
-        $totalOrder = 0;
-        foreach($orderData["items"] as &$item) {
-            $product = JsonDB::getJsonById($item["productId"], "products", "id");
-            if(!$product) {
-                return ["error" => "Product with ID {$item["productId"]} not found."];
-            }
-
-            if($product["stock"] < $item["quantity"]) {
-                return ["error" => "Insufficient stock for product ID {$item["productId"]}."];
-            }
-
-            // Her ürün için toplam tutarı hesapla
-            $item["total"] = $item["quantity"] * (float)$item["unitPrice"];
-            $totalOrder   += $item["total"];
-
-            $item["total"] = (string) $item["total"];
-        }
-
-
-        // Siparişin toplam tutarını string olarak güncelle
-        $orderData["total"] = (string) $totalOrder;
-
-        // Yeni sipariş ID si
-        $orders = JsonDB::read("orders.json");
-        $orderData["id"] = count($orders) + 1;
-
-        // id yi en başa al format bozulmasın
-        $orderData = ["id" => $orderData["id"]] + $orderData;
-
-        // Siparişi ekle
-        $orders[] = $orderData;
-        JsonDB::write("orders.json", $orders);
-
-        // İndirim
-        $discountResponse      = DiscountService::calculateDiscount($orderData["id"]);
-        $orderData["discount"] = $discountResponse; // İndirimleri çıktıya ekle.
-
-        if($discountResponse) {
-            DiscountService::addDiscountReps($discountResponse); // İndirimleri kaydet
-        }
-        return $orderData;
-    }
-
     // Sipariş silme
     public static function deleteOrder($orderId) {
         $orders = JsonDB::read("orders.json");
