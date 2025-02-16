@@ -86,6 +86,11 @@ class OrderService {
             });
         }
 
+        // Siparişleri listelerken indirimleri de göstermek gerekir
+        foreach ($orders as &$order) {
+            $order["discount"] = JsonDB::getJsonById($order["id"], "discount.response", "orderId");
+        }
+
         // Dizi index lerini yeniden düzenle
         return array_values($orders);
     }
