@@ -1,46 +1,327 @@
-# Ideasoft Take-Home Assesment
+# Order Discount API
+Bu proje, bir sipariş sisteminin RESTful API olarak geliştirilmesini sağlar. 
+JSON tabanlı bir veri deposu kullanılarak siparişler oluşturulabilir, 
+listelenebilir ve silinebilir. 
+Ayrıca siparişlere özel indirim hesaplamaları yapılır.
 
-## Prosedür
-- Lütfen bu görev için bir github reposu açın ve adresini bizimle paylaşın.
-- Görevin tamamlanacağı yazılım dili PHP'dir.
-- Tercih ettiğiniz library veya framework'ü kullanabilirsiniz.
-- Veritabanı, kuyruk vb. 3.ncü parti araçları gerektiren görevlerde ürün/teknoloji sınırlaması yoktur.
-- Dilediğiniz dış kaynaklardan faydalanabilirsiniz. Lütfen kullandığınız dış kaynak ve kodları görev içerisinde yorum olarak belirtin.
+## Özellikler
+- Sipariş ekleme (POST /order)
+- Sipariş listeleme (GET /orders)
+- Müşteri bazlı sipariş listeleme (GET /orders/{id})
+- Sipariş silme (DELETE /order/{id})
+- Siparişlere özel indirim hesaplama
+- Payload validasyonları bulunmaktadır.
+- Stok kontrolleri yapar.
+- Müşteri veri setinda var mı kontrolü yapılır.
+- Daha fazla indirim türü ve kurallar eklenebilir.
 
-Bu görevde herhangi bir zaman sınırlaması bulunmamaktadır.
 
-## Docker
-Görev geliştirmesi Docker platformu üzerinde ayağa kaldırılıp test edilebilmelidir.
+## Kurulum
 
-## Veriler
-Örnek JSON dosyalarına [example-data](example-data) klasöründen ulaşabilirsiniz.
+### Gereksinimler
+- PHP 7.4+
+- Composer (Opsiyonel, bağımlılık yönetimi için)
+- Docker (Opsiyonel, kapsayıcı ortamda çalıştırmak için)
 
-## Sorularınız Varsa
-Eğer görevde net olmayan noktalar olduğunu düşünüyorsanız, lütfen bizimle iletişime geçmekten çekinmeyin.
+### Çalıştırma
+1. Projeyi klonlayın:
+```bash
+git clone https://github.com/furkan-berkay/DockerOrderAPI.git
+cd DockerOrderAPI
+```
+2. Bağımlılıkları yükleyin (Opsiyonel):
+```bash
+composer install
+```
+3. Gerekli JSON dosyalarını oluşturun:
+- storage/orders.json → Siparişleri saklamak için.
+- storage/products.json → Ürün bilgileri.
+- storage/customers.json → Müşteri bilgileri.
+- storage/discounts.json → İndirim bilgileri.
+4. PHP yerel sunucusunu başlatın
+```bash
+   php -S localhost:8000 -t public
+```
+5. PHP yerel sunucusunu başlatın
+```bash
+   docker-compose up -d
+```
 
----
+## API Kullanımı
 
-## Görev 1 - Siparişler
-Siparişler için, ekleme / silme / listeleme işlemlerinin gerçekleştirilebileceği bir **RESTful** API servisi oluşturun.
+### Sipariş Ekleme
+Endpoint: POST /order  
 
-### Sipariş Kuralları Nedir?
-- Yeni sipariş eklenirken, satın alınan ürünün stoğu yeterli değilse (**products.stock**) bir hata mesajı döndürün.
-- Payload validasyonu gerçekleştirin.
+Örnek istek:
+```json
+{
+  "customerId": 1,
+  "items": [
+    {
+      "productId": 100,
+      "quantity": 10,
+      "unitPrice": "120.75"
+    },
+    {
+      "productId": 101,
+      "quantity": 4,
+      "unitPrice": "49.50"
+    },
+    {
+      "productId": 102,
+      "quantity": 7,
+      "unitPrice": "49.50"
+    }
+  ]
+}
 
-### Örnek Data:
-- [orders.json](example-datarders.json)
-- [products.json](example-dataroducts.json)
-- [customers.json](example-dataustomers.json)
+```
+Örnek çıktı:
+```json
+{
+  "id": 5,
+  "customerId": 1,
+  "items": [
+    {
+      "productId": 100,
+      "quantity": 10,
+      "unitPrice": "120.75",
+      "total": "1207.5"
+    },
+    {
+      "productId": 101,
+      "quantity": 4,
+      "unitPrice": "49.50",
+      "total": "198"
+    },
+    {
+      "productId": 102,
+      "quantity": 7,
+      "unitPrice": "49.50",
+      "total": "346.5"
+    }
+  ],
+  "total": "1752",
+  "discount": {
+    "orderId": 5,
+    "discounts": [
+      {
+        "discountReason": "10_PERCENT_OVER_1000",
+        "discountAmount": "175.20",
+        "subtotal": "1576.80"
+      },
+      {
+        "discountReason": "BUY_5_GET_1_CATEGORY_2",
+        "discountAmount": "11.28",
+        "subtotal": "1565.52"
+      },
+      {
+        "discountReason": "20_PERCENT_LOWEST_PRODUCT_CATEGORY_1",
+        "discountAmount": "9.90",
+        "subtotal": "1555.62"
+      }
+    ],
+    "totalDiscount": "196.38",
+    "discountedTotal": "1555.62"
+  }
+}
+```
+### Sipariş Listeleme
+- Endpoint: GET /orders  
+Örnek çıktı:
+```json
+[
+  {
+    "id": 1,
+    "customerId": 1,
+    "items": [
+      {
+        "productId": 102,
+        "quantity": 10,
+        "unitPrice": "11.28",
+        "total": "112.80"
+      }
+    ],
+    "total": "112.80",
+    "discount": null
+  },
+  ...
+  {
+    "id": 5,
+    "customerId": 1,
+    "items": [
+      {
+        "productId": 100,
+        "quantity": 10,
+        "unitPrice": "120.75",
+        "total": "1207.5"
+      },
+      {
+        "productId": 101,
+        "quantity": 4,
+        "unitPrice": "49.50",
+        "total": "198"
+      },
+      {
+        "productId": 102,
+        "quantity": 7,
+        "unitPrice": "49.50",
+        "total": "346.5"
+      }
+    ],
+    "total": "1752",
+    "discount": {
+      "orderId": 5,
+      "discounts": [
+        {
+          "discountReason": "10_PERCENT_OVER_1000",
+          "discountAmount": "175.20",
+          "subtotal": "1576.80"
+        },
+        {
+          "discountReason": "BUY_5_GET_1_CATEGORY_2",
+          "discountAmount": "11.28",
+          "subtotal": "1565.52"
+        },
+        {
+          "discountReason": "20_PERCENT_LOWEST_PRODUCT_CATEGORY_1",
+          "discountAmount": "9.90",
+          "subtotal": "1555.62"
+        }
+      ],
+      "totalDiscount": "196.38",
+      "discountedTotal": "1555.62"
+    }
+  }
+]
+```
+- Endpoint: GET /orders{customerId}  
+  Örnek çıktı:
+```json
+[
+  {
+    "id": 1,
+    "customerId": 1,
+    "items": [
+      {
+        "productId": 102,
+        "quantity": 10,
+        "unitPrice": "11.28",
+        "total": "112.80"
+      }
+    ],
+    "total": "112.80",
+    "discount": null
+  },
+  {
+    "id": 4,
+    "customerId": 1,
+    "items": [
+      {
+        "productId": 100,
+        "quantity": 10,
+        "unitPrice": "120.75",
+        "total": "1207.5"
+      },
+      {
+        "productId": 101,
+        "quantity": 4,
+        "unitPrice": "49.50",
+        "total": "198"
+      },
+      {
+        "productId": 102,
+        "quantity": 7,
+        "unitPrice": "49.50",
+        "total": "346.5"
+      }
+    ],
+    "total": "1752",
+    "discount": {
+      "orderId": 4,
+      "discounts": [
+        {
+          "discountReason": "10_PERCENT_OVER_1000",
+          "discountAmount": "175.20",
+          "subtotal": "1576.80"
+        },
+        {
+          "discountReason": "BUY_5_GET_1_CATEGORY_2",
+          "discountAmount": "11.28",
+          "subtotal": "1565.52"
+        },
+        {
+          "discountReason": "20_PERCENT_LOWEST_PRODUCT_CATEGORY_1",
+          "discountAmount": "9.90",
+          "subtotal": "1555.62"
+        }
+      ],
+      "totalDiscount": "196.38",
+      "discountedTotal": "1555.62"
+    }
+  },
+  {
+    "id": 5,
+    "customerId": 1,
+    "items": [
+      {
+        "productId": 100,
+        "quantity": 10,
+        "unitPrice": "120.75",
+        "total": "1207.5"
+      },
+      {
+        "productId": 101,
+        "quantity": 4,
+        "unitPrice": "49.50",
+        "total": "198"
+      },
+      {
+        "productId": 102,
+        "quantity": 7,
+        "unitPrice": "49.50",
+        "total": "346.5"
+      }
+    ],
+    "total": "1752",
+    "discount": {
+      "orderId": 5,
+      "discounts": [
+        {
+          "discountReason": "10_PERCENT_OVER_1000",
+          "discountAmount": "175.20",
+          "subtotal": "1576.80"
+        },
+        {
+          "discountReason": "BUY_5_GET_1_CATEGORY_2",
+          "discountAmount": "11.28",
+          "subtotal": "1565.52"
+        },
+        {
+          "discountReason": "20_PERCENT_LOWEST_PRODUCT_CATEGORY_1",
+          "discountAmount": "9.90",
+          "subtotal": "1555.62"
+        }
+      ],
+      "totalDiscount": "196.38",
+      "discountedTotal": "1555.62"
+    }
+  }
+]
+```
 
-## Görev 2 - İndirimler
-Verilen siparişler için indirimleri hesaplayan küçük bir **RESTful** API servisi oluşturun.
+### Sipariş Silme
+- Endpoint: DELETE /order/{id}  
+  Örnek çıktı:
+```json
+{
+  "message": "Order deleted successfully.Discount data deleted successfully."
+}
+```
 
-### İndirim Kuralları Nedir?
-- Toplam 1000TL ve üzerinde alışveriş yapan bir müşteri, siparişin tamamından %10 indirim kazanır.
-- **2** ID'li kategoriye ait bir üründen 6 adet satın alındığında, bir tanesi ücretsiz olarak verilir.
-- **1** ID'li kategoriden iki veya daha fazla ürün satın alındığında, en ucuz ürüne %20 indirim yapılır.
-
-Lütfen gelecekte daha fazla indirim kuralı eklenebileceğini göz önünde bulundurun.
-
-### Örnek Cevap:
-- [discount.response.json](example-dataiscount.response.json)
+## Yapılabilecekler
+- Daha fazla indirim türü eklenebilir
+- Daha fazla kural tanımlanabilir
+- Gerçek bir veritabanı ile entegrasyonu yapılabilir.
+- product ve customer için CRUD yapılabilir.
+- Tüm verilere status değeri eklenebilir, böylece delete ve hard delete ayrımı yapılabilir.

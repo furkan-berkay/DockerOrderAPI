@@ -7,6 +7,71 @@ class OrderService {
     public static function addOrder($orderData) {
         // Payload validasyonu
         $validationErrors = self::validateOrderPayload($orderData);
+        if (!empty($validationErrors)) {
+            return ["error" => $validationErrors]; // Geçersiz verilerle işlem yapma
+        }
+
+        // Siparişteki her ürün için stok kontrolü ve toplam hesaplama
+        $totalOrder = 0;
+        $orders     = JsonDB::read("orders.json");
+
+        foreach ($orderData["items"] as &$item) {
+            $product = JsonDB::getJsonById($item["productId"], "products", "id");
+            if (!$product) {
+                return ["error" => "Product with ID {$item["productId"]} not found."];
+            }
+
+            // Tüm siparişlerde bu üründen kaç tane sipariş edildiğini hesapla
+            $orderedQuantity = 0;
+            foreach ($orders as $order) {
+                foreach ($order["items"] as $orderedItem) {
+                    if ($orderedItem["productId"] == $item["productId"]) {
+                        $orderedQuantity += $orderedItem["quantity"];
+                    }
+                }
+            }
+
+            // Stok kontrolü: Ürünün mevcut stoğu - önceki siparişlerde kullanılan miktar
+            $remainingStock = $product["stock"] - $orderedQuantity;
+            if ($remainingStock < $item["quantity"]) {
+                return ["error" => "Insufficient stock for product ID {$item["productId"]}. Remaining: {$remainingStock}"];
+            }
+
+            // Her ürün için toplam tutarı hesapla
+            $item["total"] = $item["quantity"] * (float) $item["unitPrice"];
+            $totalOrder   += $item["total"];
+
+            // String formatına çevir
+            $item["total"] = (string) $item["total"];
+        }
+
+        // Siparişin toplam tutarını string olarak güncelle
+        $orderData["total"] = (string) $totalOrder;
+
+        // Yeni sipariş ID'si
+        $orderData["id"] = count($orders) + 1;
+
+        // id'yi en başa al format bozulmasın
+        $orderData = ["id" => $orderData["id"]] + $orderData;
+
+        // Siparişi ekle
+        $orders[] = $orderData;
+        JsonDB::write("orders.json", $orders);
+
+        // İndirim hesapla ve ekle
+        $discountResponse      = DiscountService::calculateDiscount($orderData["id"]);
+        $orderData["discount"] = $discountResponse;
+
+        if ($discountResponse) {
+            DiscountService::addDiscountReps($discountResponse);
+        }
+
+        return $orderData;
+    }
+
+    public static function addOrderx($orderData) {
+        // Payload validasyonu
+        $validationErrors = self::validateOrderPayload($orderData);
         if(!empty($validationErrors)) {
             return ["error" => $validationErrors]; // Geçersiz verilerle işlem yapma
         }
@@ -18,6 +83,7 @@ class OrderService {
             if(!$product) {
                 return ["error" => "Product with ID {$item["productId"]} not found."];
             }
+
             if($product["stock"] < $item["quantity"]) {
                 return ["error" => "Insufficient stock for product ID {$item["productId"]}."];
             }
