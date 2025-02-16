@@ -3,24 +3,6 @@ require_once __DIR__ . "/../storage/JsonDB.php";
 
 class DiscountService {
 
-    // İndirim kurallarını ayrı fonksiyonlar
-    public static function applyDiscounts($order) {
-        $total           = self::calculateTotal($order);
-        $discountedTotal = $total;
-        $discounts       = [];
-
-        // Kuralları sırayla uygula
-        $discounts = array_merge($discounts, self::apply10PercentOver1000($order, $discountedTotal));
-        $discounts = array_merge($discounts, self::applyBuy5Get1Category2($order, $discountedTotal));
-        $discounts = array_merge($discounts, self::apply20PercentLowestProductCategory1($order, $discountedTotal));
-
-        return [
-            'totalDiscount'   => number_format($total - $discountedTotal, 2, ".", ""),
-            'discountedTotal' => number_format($discountedTotal, 2, ".", ""),
-            'discounts'       => $discounts
-        ];
-    }
-
     // Siparişin toplamı
     public static function calculateTotal($order) {
         if (isset($order["total"]) && $order["total"] > 0) {
@@ -32,6 +14,58 @@ class DiscountService {
             $total += $item["unitPrice"] * $item["quantity"];
         }
         return $total;
+    }
+
+    public static function calculateDiscount($orderId) {
+        $order = JsonDB::getJsonById($orderId, "orders", "id");
+        if (empty($order)) { return null; }
+
+        $discountData = self::applyDiscounts($order);
+        return [
+            "orderId"         => $order["id"],
+            "discounts"       => $discountData['discounts'],
+            "totalDiscount"   => $discountData['totalDiscount'],
+            "discountedTotal" => $discountData['discountedTotal']
+        ];
+    }
+
+    // İndirim bilgileri kaydetme
+    public static function addDiscountReps($discountData) {
+        $existingDiscounts   = JsonDB::read("discount.response.json");
+        $existingDiscounts[] = $discountData;
+        JsonDB::write("discount.response.json", $existingDiscounts);
+        return $discountData;
+    }
+
+    // İndirim silme
+    public static function deleteDiscount($orderId) {
+        $discount = JsonDB::read("discount.response.json");
+        foreach($discount as $key => $value) {
+            if($value["orderId"] == $orderId) {
+                unset($discount[$key]);
+                JsonDB::write("discount.response.json", array_values($discount));
+                return ["message" => "Discount data deleted successfully."];
+            }
+        }
+        return ["message" => "Discount data not found."];
+    }
+
+    // İndirim kurallarını ayrı fonksiyonlar
+    public static function applyDiscounts($order) {
+        $total           = self::calculateTotal($order);
+        $discountedTotal = $total;
+        $discounts       = [];
+
+        // Kuralları sırayla birleştir
+        $discounts = array_merge($discounts, self::apply10PercentOver1000($order, $discountedTotal));
+        $discounts = array_merge($discounts, self::applyBuy5Get1Category2($order, $discountedTotal));
+        $discounts = array_merge($discounts, self::apply20PercentLowestProductCategory1($order, $discountedTotal));
+
+        return [
+            "totalDiscount"   => number_format($total - $discountedTotal, 2, ".", ""),
+            "discountedTotal" => number_format($discountedTotal, 2, ".", ""),
+            "discounts"       => $discounts
+        ];
     }
 
     // 1000 TL ve üzeri %10 İndirim
@@ -103,40 +137,6 @@ class DiscountService {
             ];
         }
         return $discounts;
-    }
-
-    public static function calculateDiscount($orderId) {
-        $order = JsonDB::getJsonById($orderId, "orders", "id");
-        if (empty($order)) { return null; }
-
-        $discountData = self::applyDiscounts($order);
-        return [
-            "orderId"         => $order["id"],
-            "discounts"       => $discountData['discounts'],
-            "totalDiscount"   => $discountData['totalDiscount'],
-            "discountedTotal" => $discountData['discountedTotal']
-        ];
-    }
-
-    // İndirim bilgileri kaydetme
-    public static function addDiscountReps($discountData) {
-        $existingDiscounts   = JsonDB::read("discount.response.json");
-        $existingDiscounts[] = $discountData;
-        JsonDB::write("discount.response.json", $existingDiscounts);
-        return $discountData;
-    }
-
-    // İndirim silme
-    public static function deleteDiscount($orderId) {
-        $discount = JsonDB::read("discount.response.json");
-        foreach($discount as $key => $value) {
-            if($value["orderId"] == $orderId) {
-                unset($discount[$key]);
-                JsonDB::write("discount.response.json", array_values($discount));
-                return ["message" => "Discount data deleted successfully."];
-            }
-        }
-        return ["message" => "Discount data not found."];
     }
 }
 ?>

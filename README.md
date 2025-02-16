@@ -14,6 +14,7 @@ Ayrıca siparişlere özel indirim hesaplamaları yapılır.
 - Stok kontrolleri yapar.
 - Müşteri veri setinda var mı kontrolü yapılır.
 - Daha fazla indirim türü ve kurallar eklenebilir.
+- - Yeni bir indirim eklemek için, sadece yeni bir apply fonksiyonu yazıp applyDiscounts() içinde çağırmanız yeterlidir.
 
 
 ## Kurulum
