@@ -9,6 +9,8 @@ Ayrıca siparişlere özel indirim hesaplamaları yapılır.
 - Sipariş listeleme (GET /orders)
 - Müşteri bazlı sipariş listeleme (GET /orders/{id})
 - Sipariş silme (DELETE /order/{id})
+- Siparişe ait indirim getirme (POST /discount)
+- Sipariş ait indirim silme (DELETE /discount/{id})
 - Siparişlere özel indirim hesaplama
 - Payload validasyonları bulunmaktadır.
 - Stok kontrolleri yapar.
@@ -317,6 +319,49 @@ Endpoint: POST /order
 ```json
 {
   "message": "Order deleted successfully.Discount data deleted successfully."
+}
+```
+
+### Sipariş ait indirim listeleme
+- Endpoint: POST /discount  
+  Örnek istek:
+```json
+{
+  "orderId": 4
+}
+``` 
+Örnek çıktı:
+```json
+{
+  "orderId": 4,
+  "discounts": [
+    {
+      "discountReason": "10_PERCENT_OVER_1000",
+      "discountAmount": "175.20",
+      "subtotal": "1576.80"
+    },
+    {
+      "discountReason": "BUY_5_GET_1_CATEGORY_2",
+      "discountAmount": "11.28",
+      "subtotal": "1565.52"
+    },
+    {
+      "discountReason": "20_PERCENT_LOWEST_PRODUCT_CATEGORY_1",
+      "discountAmount": "9.90",
+      "subtotal": "1555.62"
+    }
+  ],
+  "totalDiscount": "196.38",
+  "discountedTotal": "1555.62"
+}
+```
+
+### Sipariş ait indirimi Silme
+- Endpoint: DELETE /discount/{id}  
+  Örnek çıktı:
+```json
+{
+  "message": "Discount data deleted successfully."
 }
 ```
 
