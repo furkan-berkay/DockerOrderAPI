@@ -43,7 +43,7 @@ composer install
 ```bash
    php -S localhost:8000 -t public
 ```
-5. PHP yerel sunucusunu başlatın
+5. Docker ile çalıştırmak için (Opsiyonel):
 ```bash
    docker-compose up -d
 ```
