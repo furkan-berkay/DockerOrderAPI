@@ -25,4 +25,9 @@ class DiscountController {
             echo json_encode(["error" => "Method not allowed"]);
         }
     }
+    public static function handleDelete($orderId) {
+        header("Content-Type: application/json");
+        $response = DiscountService::deleteDiscount($orderId);
+        echo json_encode($response);
+    }
 }

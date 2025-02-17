@@ -37,5 +37,22 @@
         ],
         "totalDiscount": "196.38",
         "discountedTotal": "1555.62"
+    },
+    {
+        "orderId": 5,
+        "discounts": [
+            {
+                "discountReason": "BUY_5_GET_1_CATEGORY_2",
+                "discountAmount": "11.28",
+                "subtotal": "653.97"
+            },
+            {
+                "discountReason": "20_PERCENT_LOWEST_PRODUCT_CATEGORY_1",
+                "discountAmount": "9.90",
+                "subtotal": "644.07"
+            }
+        ],
+        "totalDiscount": "21.18",
+        "discountedTotal": "644.07"
     }
 ]

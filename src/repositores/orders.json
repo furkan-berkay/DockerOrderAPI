@@ -74,5 +74,30 @@
             }
         ],
         "total": "1752"
+    },
+    {
+        "id": 5,
+        "customerId": 1,
+        "items": [
+            {
+                "productId": 100,
+                "quantity": 1,
+                "unitPrice": "120.75",
+                "total": "120.75"
+            },
+            {
+                "productId": 101,
+                "quantity": 4,
+                "unitPrice": "49.50",
+                "total": "198"
+            },
+            {
+                "productId": 102,
+                "quantity": 7,
+                "unitPrice": "49.50",
+                "total": "346.5"
+            }
+        ],
+        "total": "665.25"
     }
 ]
